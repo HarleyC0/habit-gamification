@@ -15,4 +15,3 @@ Estructura profesional basica:
     https://tailwindcss.com/docs/installation/using-vite
     
     https://ui.shadcn.com/docs/installation/vite
-    
