@@ -27,14 +27,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar si hay token guardado al cargar
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
     
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    if (storedToken && storedUser && storedUser !== 'undefined') {
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error al parsear usuario:', error);
+        // Limpia el localStorage si está corrupto
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
+    
     setIsLoading(false);
   }, []);
 

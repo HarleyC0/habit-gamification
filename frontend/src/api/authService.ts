@@ -1,7 +1,7 @@
 // Aqui van las llamadas a la API de autenticación
 // src/services/authService.ts
 
-const API_URL = 'http://localhost:3000/api'; // URL de la API
+const API_URL = 'http://127.0.0.1:8000'; // URL de la API
 
 export const authService = {
   // Login
