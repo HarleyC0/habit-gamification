@@ -1,7 +1,22 @@
 import { VALIDATION_RULES, ERROR_MESSAGES } from './constants';
 import type { HabitFormData } from '../types/habit.types';
+import type { RegisterFormData } from '../types/auth.types';
 
 export type ValidationErrors<T> = Partial<Record<keyof T, string>>;
+
+// Validaciones de autenticacion
+
+export const validateUsername = (username: string): string => {
+  if (!username) return ERROR_MESSAGES.REQUIRED_FIELD;
+  if (username.length < VALIDATION_RULES.USERNAME_MIN_LENGTH) {
+    return ERROR_MESSAGES.USERNAME_TOO_SHORT;
+  }
+  const usernameRegex = /^[a-zA-Z0-9_]+$/;
+  if (!usernameRegex.test(username)) {
+    return ERROR_MESSAGES.INVALID_USERNAME;
+  }
+  return '';
+}
 
 export const validateEmail = (email: string): string => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -15,8 +30,46 @@ export const validatePassword = (password: string): string => {
     if (password.length < VALIDATION_RULES.PASSWORD_MIN_LENGTH) {
       return ERROR_MESSAGES.PASSWORD_TOO_SHORT;
     }
+    // Validaciones de fortaleza
+    if (!/[A-Z]/.test(password)) {
+      return ERROR_MESSAGES.PASSWORD_NEEDS_UPPERCASE;
+    }
+    
+    if (!/[a-z]/.test(password)) {
+      return ERROR_MESSAGES.PASSWORD_NEEDS_LOWERCASE;
+    }
+    
+    if (!/\d/.test(password)) {
+      return ERROR_MESSAGES.PASSWORD_NEEDS_NUMBER;
+    }
     return '';
 };
+
+export const validateConfirmPassword = (password: string, confirmPassword: string): string => {
+  if (!confirmPassword) return ERROR_MESSAGES.REQUIRED_FIELD;
+  if (confirmPassword !== password) return ERROR_MESSAGES.PASSWORDS_DO_NOT_MATCH;
+  return '';
+};
+
+export const validateRegisterForm = (formData: RegisterFormData): ValidationErrors<RegisterFormData> => {
+  const errors: ValidationErrors<RegisterFormData> = {};
+
+  //username
+  const usernameError = validateUsername(formData.username);
+  if (usernameError) errors.username = usernameError;
+  //email
+  const emailError = validateEmail(formData.email);
+  if (emailError) errors.email = emailError;
+  //password
+  const passwordError = validatePassword(formData.password);
+  if (passwordError) errors.password = passwordError;
+  //confirmPassword
+  const confirmPasswordError = validateConfirmPassword(formData.password, formData.confirmPassword);
+  if (confirmPasswordError) errors.confirmPassword = confirmPasswordError;
+  return errors;
+}
+
+// Validaciones de habitos
 
 export const validateHabitTitle = (title: string): string => {
     if (!title || !title.trim()) return ERROR_MESSAGES.REQUIRED_FIELD;

@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import type { FormEvent, ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useRegisterForm } from '@/hooks/useRegisterForm';
 
 interface RegisterFormData {
   username: string;
@@ -11,29 +10,34 @@ interface RegisterFormData {
 function Register() {
 
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<RegisterFormData>({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  const {
+    values,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    usernameStatus,
+    emailStatus,
+    canSubmit,
+    handleRegister,
+    isSubmitting
+  } = useRegisterForm();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if(formData.password !== formData.confirmPassword){
-      alert("Las Contraseñas no Coinciden");
-      return;
+    
+    const result = await handleRegister();
+    
+    if (result.success) {
+      // Registro exitoso
+      alert('¡Registro exitoso! Bienvenido');
+      navigate('/login'); // o '/dashboard'
+    } else {
+      // Error en el registro (ya se muestran los errores en los campos)
+      console.error('Error en registro:', result.error);
     }
-
-    navigate('/login');
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center px-4">
@@ -55,11 +59,27 @@ function Register() {
               type="text"
               id="username"
               name="username"
-              value={formData.username}
+              value={values.username}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-4 focus:ring-purple-500 focus:border-transparent"
               placeholder="usuario123" required />
+            {/* Mostrar estado de verificación */}
+            {usernameStatus === 'checking' && (
+              <p className="text-sm text-blue-600 mt-1">🔍 Verificando disponibilidad...</p>
+            )}
+            {usernameStatus === 'available' && (
+              <p className="text-sm text-green-600 mt-1">✅ Usuario disponible</p>
+            )}
+            {usernameStatus === 'taken' && (
+              <p className="text-sm text-red-600 mt-1">❌ Usuario no disponible</p>
+            )}
+
+            {/* Mostrar error de validación */}
+            {touched.username && errors.username && (
+              <p className="text-sm text-red-600 mt-1">{errors.username}</p>
+            )}
           </div>
+
 
           {/**Email */}
           <div>
@@ -70,10 +90,24 @@ function Register() {
               type="email"
               id="email"
               name="email"
-              value={formData.email}
+              value={values.email}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-4 focus:ring-purple-500 focus:border-transparent"
               placeholder="ejemplo@email.com" required />
+              {/* Mostrar estado de verificación */}
+              {emailStatus === 'checking' && (
+                <p className="text-sm text-blue-600 mt-1">🔍 Verificando disponibilidad...</p>
+              )}
+              {emailStatus === 'available' && (
+                <p className="text-sm text-green-600 mt-1">✅ Email disponible</p>
+              )}
+              {emailStatus === 'taken' && (
+                <p className="text-sm text-red-600 mt-1">❌ Email ya registrado</p>
+              )}
+              {/* Mostrar error de validación */}
+              {touched.email && errors.email && (
+                <p className="text-sm text-red-600 mt-1">{errors.email}</p>
+              )}   
           </div>
 
           {/**Contraseña */}
@@ -85,11 +119,15 @@ function Register() {
               type="password"
               id="password"
               name="password"
-              value={formData.password}
+              value={values.password}
               onChange={handleChange}
               minLength={6}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-4 focus:ring-purple-500 focus:border-transparent"
               placeholder="••••••••" required />
+            {/* Mostrar error de validación */}
+            {touched.password && errors.password && (
+              <p className="text-sm text-red-600 mt-1">{errors.password}</p>
+            )}
           </div>
 
           {/**Confirmar Contraseña */}
@@ -101,19 +139,28 @@ function Register() {
               type="password"
               id="confirmPassword"
               name="confirmPassword"
-              value={formData.confirmPassword}
+              value={values.confirmPassword}
               onChange={handleChange}
               minLength={6}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-4 focus:ring-purple-500 focus:border-transparent"
               placeholder="••••••••" required />
+            {/* Mostrar error de validación */}
+            {touched.confirmPassword && errors.confirmPassword && (
+              <p className="text-sm text-red-600 mt-1">{errors.confirmPassword}</p>
+            )}              
           </div>
 
           {/**Botón Submit */}
           <button 
             type="submit"
-            className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-200 font-medium "
+            disabled={!canSubmit || isSubmitting}
+            className={`w-full py-2 px-4 rounded-lg transition duration-200 font-medium ${
+              !canSubmit || isSubmitting
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-purple-600 hover:bg-purple-700 text-white'
+            }`}
             >
-              Crear Cuenta
+            {isSubmitting ? 'Creando cuenta...' : 'Crear Cuenta'}
           </button>
 
           {/**Link a Login */}

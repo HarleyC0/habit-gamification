@@ -67,5 +67,13 @@ export const ERROR_MESSAGES = {
     TITLE_TOO_SHORT: `El título debe tener al menos ${VALIDATION_RULES.HABIT_TITLE_MIN_LENGTH} caracteres`,
     DESCRIPTION_TOO_LONG: `La descripción no puede exceder ${VALIDATION_RULES.HABIT_DESCRIPTION_MAX_LENGTH} caracteres`,
     NETWORK_ERROR: 'Error de conexión. Intenta nuevamente.',
-    UNAUTHORIZED: 'Sesión expirada. Por favor inicia sesión nuevamente.'
+    UNAUTHORIZED: 'Sesión expirada. Por favor inicia sesión nuevamente.',
+    USERNAME_TOO_SHORT: `El nombre de usuario debe tener al menos ${VALIDATION_RULES.USERNAME_MIN_LENGTH} caracteres`,
+    INVALID_USERNAME: 'El nombre de usuario solo puede contener letras, números y guiones bajos',
+    PASSWORD_NEEDS_UPPERCASE: 'La contraseña debe contener al menos una letra mayúscula',
+    PASSWORD_NEEDS_LOWERCASE: 'La contraseña debe contener al menos una letra minúscula',
+    PASSWORD_NEEDS_NUMBER: 'La contraseña debe contener al menos un número',
+    PASSWORDS_DO_NOT_MATCH: 'Las contraseñas no coinciden'
 } as const;
+
+export const DEBOUNCE_DELAY = 500; // tiempo de debounce para validacion de formulario de registro

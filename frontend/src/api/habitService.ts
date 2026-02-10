@@ -65,7 +65,7 @@ class ApiErrorClass extends Error {
     ) {
       super(message);
       this.name = 'ApiError';
-      this.code = 'ApiError';
+      this.code = code ?? 'ApiError';
       this.details = details;
     }
 }
