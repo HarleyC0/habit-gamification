@@ -28,3 +28,10 @@ class HabitResponse(HabitBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+#Respuesta para el checklist del dashboard
+class HabitTodayResponse(HabitResponse):
+    is_completed_today: bool
+
+#Respuesta para la completacion de un habito
+class HabitCompleteRequest(BaseModel):
+    time_spent: int | None = None

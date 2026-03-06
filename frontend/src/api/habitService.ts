@@ -2,7 +2,7 @@ import type {
     Habit,
     HabitCreateDTO, 
     HabitUpdateDTO, 
-    HabitCompletion 
+    HabitToday
 } from '../types/habit.types';
 
 import type { ApiError } from '../types/api.types';
@@ -10,7 +10,7 @@ import type { ApiError } from '../types/api.types';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 //MODO DESARROLLO - Cambiar a false cuando el backend esté listo
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // Datos de prueba
 let mockHabits: Habit[] = [
@@ -63,7 +63,7 @@ class ApiErrorClass extends Error {
       code?: string,
       details?: Record<string, string[]>
     ) {
-      super(message);
+      super(message); // new Error("detail")
       this.name = 'ApiError';
       this.code = code ?? 'ApiError';
       this.details = details;
@@ -73,10 +73,10 @@ class ApiErrorClass extends Error {
 const handleResponse = async <T>(response: Response): Promise<T> => {
     if (!response.ok) {
       const error: ApiError = await response.json().catch(() => ({
-        message: 'Error en la petición'
+        detail: 'Error en la petición'
       }));
       throw new ApiErrorClass(
-        error.message || 'Error en la petición',
+        error.detail || 'Error en la petición',
         error.code,
         error.details
       );
@@ -188,17 +188,13 @@ const habitService = {
       }
     },
   
-    complete: async (id: number, timeSpent?: number): Promise<HabitCompletion> => {
+    complete: async (id: number, timeSpent?: number): Promise<HabitToday> => {
       if (USE_MOCK_DATA) {
         await mockDelay();
-        const completion: HabitCompletion = {
-          id: Date.now(),
-          habit_id: id,
-          completed_at: new Date().toISOString(),
-          time_spent: timeSpent
-        };
-        console.log('✅ Hábito completado (mock):', completion);
-        return completion;
+        const habit= mockHabits.find(h => h.id === id);
+        if (!habit) throw new ApiErrorClass("habito no encontrado"); 
+        console.log('✅ Hábito completado (mock):', habit);
+        return { ...habit, is_completed_today: true } as HabitToday;
       }
       
       const response = await fetch(`${API_URL}/habits/${id}/complete`, {
@@ -206,7 +202,22 @@ const habitService = {
         headers: getHeaders(),
         body: JSON.stringify({ time_spent: timeSpent })
       });
-      return handleResponse<HabitCompletion>(response);
+      return handleResponse<HabitToday>(response);
+    },
+
+    getToday: async (): Promise<HabitToday[]> => {
+      if (USE_MOCK_DATA) {
+        await mockDelay();
+        return mockHabits.map(habit => ({
+          ...habit,
+          is_completed_today: false
+        }));
+      }
+      const response = await fetch(`${API_URL}/habits/today`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+      return handleResponse<HabitToday[]>(response)
     }
 };
   

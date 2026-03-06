@@ -41,10 +41,15 @@ def decode_access_token(token: str) -> Optional[dict]:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            algorithm=[settings.ALGORITHM]
+            algorithms=[settings.ALGORITHM]
         )
+        print("PAYLOAD:", payload)  # <- agregar esto
         return payload
-    except JWTError:
+    except JWTError as e:
+        print("JWT ERROR:", e)
+        return None
+    except Exception as e:
+        print("OTRO ERROR:", e)
         return None
 
 
@@ -52,6 +57,7 @@ def decode_access_token(token: str) -> Optional[dict]:
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    print("TOKEN RECIBIDO:", token)  # <- agregar esto
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Token inválido o expirado",
@@ -62,7 +68,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if payload is None:
         raise credentials_exception
     
-    user_id: int = payload.get("sub")
+    user_id: int = int(payload.get("sub"))
     if user_id is None:
         raise credentials_exception
     

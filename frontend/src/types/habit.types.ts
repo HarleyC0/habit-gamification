@@ -45,3 +45,7 @@ export interface CategoryOption {
     color: string;
     borderColor: string;
 }
+
+export interface HabitToday extends Habit{
+    is_completed_today: boolean
+}

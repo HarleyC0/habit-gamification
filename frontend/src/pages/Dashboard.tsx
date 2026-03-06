@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-
+import { Checklist } from "@/components/CheckList";
 
 function Dashboard() {
 
@@ -42,6 +42,9 @@ function Dashboard() {
           </p>
         </div>
 
+        {/**Checklist de Hábitos*/}
+        <Checklist/>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/**Card de Hábitos */}
           <button
@@ -78,6 +81,7 @@ function Dashboard() {
             <p>Lista de logros alcanzados</p>
           </div>
 
+          {/**Card de Ranking */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-800">Ranking</h3>

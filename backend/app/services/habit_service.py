@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from app.schemas.habit import HabitResponse, HabitCreate, HabitUpdate
-from app.models.habits import Habit
-
+from app.schemas.habit import HabitResponse, HabitCreate, HabitUpdate, HabitTodayResponse, HabitCompleteRequest
+from app.models.habits import Habit, HabitCompletion
+from sqlalchemy import func
+from datetime import datetime
 
 class HabitService: 
 
@@ -66,3 +67,57 @@ class HabitService:
         db.commit()
 
         return habit
+
+    @staticmethod
+    def get_habits_today(db: Session, user_id: int) -> list[HabitTodayResponse]:
+        """
+        Obtener lista de habitos del usuario con estado de completado hoy
+        """
+        today = datetime.now().date()
+        habits = HabitService.get_habits(db, user_id)
+        listHabitsResult = []
+
+        for habit in habits:
+            completions = db.query(HabitCompletion).filter(
+                HabitCompletion.habit_id == habit.id, 
+                func.date(HabitCompletion.completed_at) == today
+            ).first()
+            habit.is_completed_today = completions is not None
+            listHabitsResult.append(HabitTodayResponse.model_validate(habit))
+            
+        return listHabitsResult
+        
+    @staticmethod
+    def complete_habit(db: Session, user_id: int, habit_id: int, data: HabitCompleteRequest) -> HabitTodayResponse:
+        """
+        marcar como completado hoy un habito
+        """
+        # verificar si el habito existe y pertenece al usuario
+        habit = HabitService.get_habit(db, user_id, habit_id)
+        if not habit:
+            return None
+
+        # verificar si el habito se completo hoy o no
+        today = datetime.now().date()
+        existing = db.query(HabitCompletion).filter(
+            HabitCompletion.habit_id == habit_id,
+            HabitCompletion.user_id == user_id,
+            func.date(HabitCompletion.completed_at) == today
+        ).first()
+        if existing:
+            return None
+
+        # crear un nuevo registro de completacion
+        completion = HabitCompletion(
+            habit_id = habit_id,
+            user_id = user_id,
+            time_spent = data.time_spent if data else None,
+            points_earned = 1
+        )
+        db.add(completion)
+        db.commit()
+
+        # retornar el habito con true en completado
+        habit.is_completed_today = True
+        return HabitTodayResponse.model_validate(habit)
+
